@@ -1,28 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"log"
+    "github.com/gin-gonic/gin"
 )
 
 func main() {
-    fileServer := http.FileServer(http.Dir("../../web"))
+	router := gin.Default()
 
-	http.Handle("/web", fileServer)
+    router.Static("/", "./web")
 
-    http.HandleFunc("/", indexPage)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-        log.Fatal(err)
-    }
-
-}
-
-func indexPage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(
-			w,
-		`<h1>Hello, Gophers</h1>
-		<p>You're learning about web development, so</p>
-		<p>you might want to learn about the common HTML tags</p>`,
-	)
+	log.Println("Server runs at :8080")
+	router.Run(":8080")
 }
