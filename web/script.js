@@ -1,7 +1,7 @@
 const post_new_entry = document.getElementById("PostNewEntry");
 
 post_new_entry.onclick = async () => {
-  const rawResponse = await fetch("https://127.0.0.1:8080/entries", {
+  const rawResponse = await fetch("http://127.0.0.1:8080/entries", {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -9,9 +9,9 @@ post_new_entry.onclick = async () => {
     },
     body: JSON.stringify(
       {
-        name: document.getElementById("nameInput"), 
-        password: document.getElementById("passwordInput"),
-        note: document.getElementById("notesInput")
+        name: document.getElementById("nameInput").value, 
+        password: document.getElementById("passwordInput").value,
+        note: document.getElementById("notesInput").value
       })
   });
   const content = await rawResponse.json();
