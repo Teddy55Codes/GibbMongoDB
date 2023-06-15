@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>PasswordManager with Notes</h1>
-    <form id="namePasswordForm">
+    <form id="namePasswordForm" onSubmit="return false">
         <div>
             <label>Name/E-Mail</label>
             <input id="nameInput"/>
@@ -20,7 +20,8 @@
             <label>Note</label>
             <textarea id="notesInput"></textarea>
         </div>
-        <button type="submit">submit</button>
+        <button id="PostNewEntry" type="submit">submit</button>
     </form>
+    </script src="script.js">
 </body>
 </html>
