@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"  
+	"go.mongodb.org/mongo-driver/mongo/options"
+  "go.mongodb.org/mongo-driver/bson"
 )
 
 type Entry struct {
@@ -26,7 +27,6 @@ func main() {
 
 	router := gin.Default()
 
-  router.Static("/", "./web")
 
   router.POST("/entries", func(c *gin.Context) {
 		var entry Entry
@@ -62,6 +62,39 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{"status": "Data inserted successfully"})
 	})
+
+  
+  router.GET("/entries", func(c *gin.Context) {
+	passwords, err := passwordCollection.Find(context.Background(), bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while retrieving from password collection"})
+		return
+	}
+
+	var passwordDocuments []map[string]interface{}
+	if err = passwords.All(context.TODO(), &passwordDocuments); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while decoding password documents"})
+		return
+	}
+
+	notes, err := notesCollection.Find(context.Background(), bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while retrieving from notes collection"})
+		return
+	}
+
+	var notesDocuments []map[string]interface{}
+	if err = notes.All(context.TODO(), &notesDocuments); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while decoding notes documents"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"passwords": passwordDocuments, "notes": notesDocuments})
+  })
+
+
+  router.Static("/static", "./web")
+
 
 	log.Println("Server runs at :8080")
 	router.Run(":8080")
