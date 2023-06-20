@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"net/http"
+
+	"github.com/Teddy55Codes/GibbMongoDB/internal/store"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Entry struct {
@@ -17,15 +17,10 @@ type Entry struct {
 }
 
 func main() {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
-	if err != nil {
-		panic(err)
-	}
-
-	passwordCollection := client.Database("myDatabase").Collection("passwords")
-	notesCollection := client.Database("myDatabase").Collection("notes")
+	database := *store.Connect()
 
 	router := gin.Default()
+	router.Use(CORSMiddleware())
 
 	router.POST("/entries", func(c *gin.Context) {
 		var entry Entry
@@ -41,7 +36,7 @@ func main() {
 			},
 		}
 
-		_, err := passwordCollection.InsertOne(context.Background(), passwordDocument)
+		_, err := database.PasswordCollection.InsertOne(context.Background(), passwordDocument)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while inserting into password collection"})
 			return
@@ -53,7 +48,7 @@ func main() {
 			},
 		}
 
-		_, err = notesCollection.InsertOne(context.Background(), notesDocument)
+		_, err = database.NotesCollection.InsertOne(context.Background(), notesDocument)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while inserting into notes collection"})
 			return
@@ -63,7 +58,7 @@ func main() {
 	})
 
 	router.GET("/entries", func(c *gin.Context) {
-		passwords, err := passwordCollection.Find(context.Background(), bson.M{})
+		passwords, err := database.PasswordCollection.Find(context.Background(), bson.M{})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while retrieving from password collection"})
 			return
@@ -75,7 +70,7 @@ func main() {
 			return
 		}
 
-		notes, err := notesCollection.Find(context.Background(), bson.M{})
+		notes, err := database.NotesCollection.Find(context.Background(), bson.M{})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while retrieving from notes collection"})
 			return
@@ -90,8 +85,26 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"passwords": passwordDocuments, "notes": notesDocuments})
 	})
 
-	router.Static("/static", "./web")
+	router.Static("/web", "./web")
 
 	log.Println("Server runs at :8080")
 	router.Run(":8080")
+}
+
+
+func CORSMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+
+        c.Header("Access-Control-Allow-Origin", "*")
+        c.Header("Access-Control-Allow-Credentials", "true")
+        c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+        c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+
+        if c.Request.Method == "OPTIONS" {
+            c.AbortWithStatus(204)
+            return
+        }
+
+        c.Next()
+    }
 }
