@@ -4,8 +4,6 @@ services:
   mongo:
     image: mongo
     restart: always
-    ports:
-      - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: sml12345
@@ -18,4 +16,11 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: sml12345
-      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      ME_CONFIG_MONGODB_URL: mongodb://root:sml12345@mongo:27017/
+  web:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    restart: always
+    ports:
+      - 8080:8080

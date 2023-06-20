@@ -12,13 +12,13 @@ type Database struct {
 }
 
 func Connect() *Database {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://root:sml12345@localhost:27017/"))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://root:sml12345@mongo:27017/"))
 	if err != nil {
 		panic(err)
 	}
 
 	return &Database{
-		PasswordCollection: client.Database("passwordManager").Collection("passwords"),
-		NotesCollection:    client.Database("passwordManager").Collection("notes"),
+		PasswordCollection: client.Database("myDatabase").Collection("passwords"),
+		NotesCollection:    client.Database("myDatabase").Collection("notes"),
 	}
 }
