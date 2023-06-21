@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/Teddy55Codes/GibbMongoDB/internal/store"
@@ -30,7 +29,8 @@ type password struct {
 	Password string `json:"password"`
 }
 
-type note struct {
+type note struct{
+	PasswordId primitive.ObjectID
 	Note string `json:"note"`
 }
 
@@ -46,13 +46,13 @@ func (r *Router) PostEntry(c *gin.Context) {
 		Password: entry.Password,
 	}
 
-	_, err := r.database.PasswordCollection.InsertOne(context.Background(), passwd)
+	passid, err := r.database.PasswordCollection.InsertOne(context.Background(), passwd)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while inserting into password collection"})
 		return
 	}
 
-	_, err = r.database.NotesCollection.InsertOne(context.Background(), note{Note: entry.Note})
+	_, err = r.database.NotesCollection.InsertOne(context.Background(), note{Note: entry.Note, PasswordId: passid.InsertedID.(primitive.ObjectID)})
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while inserting into notes collection"})
@@ -87,7 +87,6 @@ func (r *Router) GetEntry(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(passwordDocuments)
 	c.JSON(http.StatusOK, gin.H{"passwords": passwordDocuments, "notes": notesDocuments})
 }
 
@@ -102,18 +101,28 @@ func (r *Router) PutEntry(c *gin.Context) {
 		return
 	}
 
-	// Get the updated data from the request body
-	var updatedData map[string]interface{}
-	if err := c.BindJSON(&updatedData); err != nil {
+
+	var entry entry
+	if err := c.BindJSON(&entry); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	passwd := password{
+		Name:     entry.Name,
+		Password: entry.Password,
+	}
+
+	nt := note {
+		Note: entry.Note,
+		PasswordId: objectID,
 	}
 
 	// Create a filter to find the document by its ID
 	filter := bson.M{"_id": objectID}
 
 	// Create an update to specify the changes
-	update := bson.M{"$set": updatedData}
+	update := bson.M{"$set": passwd}
 
 	// Perform the update operation
 	result, err := r.database.PasswordCollection.UpdateOne(context.TODO(), filter, update)
@@ -128,15 +137,33 @@ func (r *Router) PutEntry(c *gin.Context) {
 		return
 	}
 
+
+	// Create a filter to find the document by its ID
+	filter = bson.M{"passwordid": objectID}
+
+	// Create an update to specify the changes
+	update = bson.M{"$set": nt}
+
+	r.database.NotesCollection.UpdateOne(context.TODO(), filter, update)
+
 	c.JSON(http.StatusOK, gin.H{"message": "Document updated successfully"})
 }
 
 func (r *Router) DeleteEntry(c *gin.Context) {
+
 	// Get the ID of the document to delete from the request URL
 	id := c.Param("id")
 
+	// Convert the ID string to an ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+
 	// Create a filter to find the document by its ID
-	filter := bson.M{"_id": id}
+	filter := bson.M{"_id": objectID}
 
 	// Perform the delete operation
 	result, err := r.database.PasswordCollection.DeleteOne(context.TODO(), filter)
@@ -145,11 +172,15 @@ func (r *Router) DeleteEntry(c *gin.Context) {
 		return
 	}
 
-	// Check if any document was deleted
+	// Check if any document was updated
 	if result.DeletedCount == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Document not found"})
 		return
 	}
+
+	filter = bson.M{"passwordid": objectID}
+
+	r.database.NotesCollection.FindOneAndDelete(context.TODO(), filter)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Document deleted successfully"})
 }
