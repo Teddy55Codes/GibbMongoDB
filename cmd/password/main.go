@@ -16,9 +16,9 @@ func main() {
 
 	rout := api.Constructor(database)
 
-	router.POST("/entries", rout.PostEntities)
-
-	router.GET("/entries", rout.GetEntities)
+	router.POST("/entries", rout.PostEntry)
+	router.GET("/entries", rout.GetEntry)
+	router.PATCH("/entries/:id", rout.PutEntry)
 
 	router.Static("/web", "./web")
 

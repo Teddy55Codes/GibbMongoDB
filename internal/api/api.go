@@ -3,7 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
-
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/Teddy55Codes/GibbMongoDB/internal/store"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -23,7 +23,7 @@ type entry struct {
 	Note     string `json:"note"`
 }
 
-func (r *Router) PostEntities(c *gin.Context) {
+func (r *Router) PostEntry(c *gin.Context) {
 	var entry entry
 	if err := c.BindJSON(&entry); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -58,7 +58,7 @@ func (r *Router) PostEntities(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "Data inserted successfully"})
 }
 
-func (r *Router) GetEntities(c *gin.Context) {
+func (r *Router) GetEntry(c *gin.Context) {
 	passwords, err := r.database.PasswordCollection.Find(context.Background(), bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while retrieving from password collection"})
@@ -84,4 +84,45 @@ func (r *Router) GetEntities(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"passwords": passwordDocuments, "notes": notesDocuments})
+}
+
+
+func (r *Router) PutEntry(c *gin.Context) {
+	// Get the ID of the document to update from the request URL
+	id := c.Param("id")
+
+	// Convert the ID string to an ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	// Get the updated data from the request body
+	var updatedData map[string]interface{}
+	if err := c.BindJSON(&updatedData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create a filter to find the document by its ID
+	filter := bson.M{"_id": objectID}
+
+	// Create an update to specify the changes
+	update := bson.M{"$set": updatedData}
+
+	// Perform the update operation
+	result, err := r.database.PasswordCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if any document was updated
+	if result.ModifiedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Document not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Document updated successfully"})
 }
