@@ -34,10 +34,12 @@ document.getElementById("GetEntries").onclick = async () => {
       // If there is a corresponding notes document
       if (data.notes[index]) {
         // Create an object with the name, password, and note
+
+        
         let entry = {
-          name: passwordDoc["1"].name,
-          password: passwordDoc["1"].password,
-          note: data.notes[index]["1"].note
+          name: passwordDoc.name,
+          password: passwordDoc.password,
+          note: data.notes[index].note
         };
 
         // Add the object to the entries array

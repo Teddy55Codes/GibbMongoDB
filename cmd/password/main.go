@@ -19,6 +19,7 @@ func main() {
 	router.POST("/entries", rout.PostEntry)
 	router.GET("/entries", rout.GetEntry)
 	router.PATCH("/entries/:id", rout.PutEntry)
+	router.DELETE("/resource/:id", rout.DeleteEntry)
 
 	router.Static("/web", "./web")
 

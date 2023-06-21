@@ -2,11 +2,13 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/Teddy55Codes/GibbMongoDB/internal/store"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Router struct {
@@ -23,6 +25,15 @@ type entry struct {
 	Note     string `json:"note"`
 }
 
+type password struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
+type note struct {
+	Note string `json:"note"`
+}
+
 func (r *Router) PostEntry(c *gin.Context) {
 	var entry entry
 	if err := c.BindJSON(&entry); err != nil {
@@ -30,26 +41,19 @@ func (r *Router) PostEntry(c *gin.Context) {
 		return
 	}
 
-	passwordDocument := map[string]interface{}{
-		"1": map[string]string{
-			"name":     entry.Name,
-			"password": entry.Password,
-		},
+	passwd := password{
+		Name:     entry.Name,
+		Password: entry.Password,
 	}
 
-	_, err := r.database.PasswordCollection.InsertOne(context.Background(), passwordDocument)
+	_, err := r.database.PasswordCollection.InsertOne(context.Background(), passwd)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while inserting into password collection"})
 		return
 	}
 
-	notesDocument := map[string]interface{}{
-		"1": map[string]string{
-			"note": entry.Note,
-		},
-	}
+	_, err = r.database.NotesCollection.InsertOne(context.Background(), note{Note: entry.Note})
 
-	_, err = r.database.NotesCollection.InsertOne(context.Background(), notesDocument)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while inserting into notes collection"})
 		return
@@ -83,9 +87,9 @@ func (r *Router) GetEntry(c *gin.Context) {
 		return
 	}
 
+	fmt.Println(passwordDocuments)
 	c.JSON(http.StatusOK, gin.H{"passwords": passwordDocuments, "notes": notesDocuments})
 }
-
 
 func (r *Router) PutEntry(c *gin.Context) {
 	// Get the ID of the document to update from the request URL
@@ -125,4 +129,27 @@ func (r *Router) PutEntry(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Document updated successfully"})
+}
+
+func (r *Router) DeleteEntry(c *gin.Context) {
+	// Get the ID of the document to delete from the request URL
+	id := c.Param("id")
+
+	// Create a filter to find the document by its ID
+	filter := bson.M{"_id": id}
+
+	// Perform the delete operation
+	result, err := r.database.PasswordCollection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if any document was deleted
+	if result.DeletedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Document not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Document deleted successfully"})
 }
