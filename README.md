@@ -10,9 +10,11 @@ Our website is reachable under [localhost:8080](localhost:8080)
 ## week 2
 In our second week we descussed how to deploy our project. We decided to use Docker for an easy deploy mehtod. We now have a docker-compose file wich not only has out mongo database and golang program but also a Mongo express image wich helps looking into the database. This interface is visible at [localhost:8081](localhost:8081). Note that it is not possible to connect to our database from outside the docker container. 
 [Mongodb docker image](https://hub.docker.com/_/mongo/)
-![popup](./assets/popup.png)
-
-![added](./assets/added.png)
 
 
 ## week 3
+
+![c](./assets/create.png)
+![r](./assets/read.png)
+![u](./assets/update.png)
+![d](./assets/delete.png)
