@@ -62,6 +62,46 @@ func (r *Router) PostEntry(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "Data inserted successfully"})
 }
 
+func (r *Router) GetEntryById(c *gin.Context) {
+	// Get the ID of the document to update from the request URL
+	id := c.Param("id")
+
+	// Convert the ID string to an ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	passwd  := r.database.PasswordCollection.FindOne(context.Background(), filter)
+	if passwd.Err() != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while retrieving from password collection"})
+		return
+	}
+
+	var passwordDocuments []map[string]interface{}
+	if err = passwd.Decode(passwordDocuments);err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while decoding password documents"})
+		return
+	}
+
+	notes, err := r.database.NotesCollection.Find(context.Background(), bson.M{"passwordid": objectID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while retrieving from notes collection"})
+		return
+	}
+
+	var notesDocuments []map[string]interface{}
+	if err = notes.All(context.TODO(), &notesDocuments); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error while decoding notes documents"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"password": passwordDocuments, "notes": notesDocuments})
+}
+
 func (r *Router) GetEntry(c *gin.Context) {
 	passwords, err := r.database.PasswordCollection.Find(context.Background(), bson.M{})
 	if err != nil {
@@ -89,7 +129,6 @@ func (r *Router) GetEntry(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"passwords": passwordDocuments, "notes": notesDocuments})
 }
-
 func (r *Router) PutEntry(c *gin.Context) {
 	// Get the ID of the document to update from the request URL
 	id := c.Param("id")
