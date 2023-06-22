@@ -5,6 +5,8 @@ services:
     container_name: mongo-db
     image: mongo
     restart: always
+    volumes:
+      - dbdata:/data/db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: sml12345
@@ -28,3 +30,6 @@ services:
     restart: always
     ports:
       - 8080:8080
+
+volumes:
+  dbdata:
