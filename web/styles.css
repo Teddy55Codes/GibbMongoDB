@@ -1,5 +1,13 @@
 /* style.css */
 
+* {
+    text-align: left;
+}
+
+input, textarea {
+    text-align: left;
+}
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -59,4 +67,27 @@ button:hover {
 
 #EntriesContainer p {
     margin-bottom: 5px;
+}
+
+#noteError {
+    display: none;
+}
+
+#nameError {
+    display: none;
+}
+
+#passwordError {
+    display: none;
+}
+
+.error {
+    color: red;
+}
+
+input[type="checkbox"] {
+    display: inline-block;
+    margin: 0 auto;
+    text-align: left;
+    width: auto;
 }

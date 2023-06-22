@@ -1,20 +1,40 @@
 document.getElementById("PostNewEntry").onclick = async () => {
-  const rawResponse = await fetch("http://127.0.0.1:8080/entries", {
-    method: "POST",
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(
-      {
-        name: document.getElementById("nameInput").value, 
-        password: document.getElementById("passwordInput").value,
-        note: document.getElementById("notesInput").value
-      })
-  });
-  const content = await rawResponse.json();
-  
-  console.log(content);
+  let name = document.getElementById("nameInput");
+  let password = document.getElementById("passwordInput");
+  let notes = document.getElementById("notesInput");
+  let nameError = document.getElementById("nameError");
+  let passwordError = document.getElementById("passwordError");
+  let notesError = document.getElementById("noteError");
+  nameError.style.display = "none";
+  passwordError.style.display = "none";
+  notesError.style.display = "none";
+
+  if (name.value !== "" && password.value !== "" && notes.value !== "") {
+    const rawResponse = await fetch("http://127.0.0.1:8080/entries", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(
+          {
+            name: document.getElementById("nameInput").value,
+            password: document.getElementById("passwordInput").value,
+            note: document.getElementById("notesInput").value
+          })
+    });
+    const content = await rawResponse.json();
+  } else {
+    if (name.value === "") {
+      nameError.style.display = "block"
+    }
+    if (password.value === "") {
+      passwordError.style.display = "block"
+    }
+    if (notes.value === "") {
+      notesError.style.display = "block"
+    }
+  }
 };
 
 async function edit(id, name, pass, note) {
@@ -80,7 +100,10 @@ async function getData() {
             };
 
             // Add the object to the entries array
-            entries.push(entry);
+            let idToGet = document.getElementById("IdToGet").value;
+            if (idToGet === "" || idToGet == entry.id) {
+              entries.push(entry);
+            }
           }
         });
 
@@ -128,14 +151,21 @@ async function getData() {
 
           div.appendChild(idTitle);
           div.appendChild(id);
-          div.appendChild(userNameTitle);
-          div.appendChild(userName);
-          div.appendChild(passwordTitle);
-          div.appendChild(password);
-          div.appendChild(noteTitle);
-          div.appendChild(note);
-          div.appendChild(editButton);
-          div.appendChild(removeButton);
+          if (document.getElementById("DisplayPassword").checked) {
+            div.appendChild(userNameTitle);
+            div.appendChild(userName);
+            div.appendChild(passwordTitle);
+            div.appendChild(password);
+          }
+
+          if (document.getElementById("DisplayNote").checked) {
+            div.appendChild(noteTitle);
+            div.appendChild(note);
+          }
+          if (document.getElementById("DisplayNote").checked || document.getElementById("DisplayPassword").checked) {
+            div.appendChild(editButton);
+            div.appendChild(removeButton);
+          }
 
           entriesContainer.appendChild(div);
         }

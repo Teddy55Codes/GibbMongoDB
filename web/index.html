@@ -11,16 +11,27 @@
         <div>
             <label>Name/E-Mail</label>
             <input id="nameInput"/>
+            <p class="error" id="nameError">Name/E-Mail can't be empty</p>
         </div>
         <div>
             <label>Password</label>
             <input id="passwordInput"/>
+            <p class="error" id="passwordError">Password can't be empty</p>
         </div>
         <div>
             <label>Note</label>
             <textarea id="notesInput"></textarea>
+            <p class="error" id="noteError">Notes can't be empty</p>
         </div>
         <button id="PostNewEntry" type="submit">submit</button>
+        <p>If you only want one entry please specify below.</p>
+        <label>Id</label>
+        <input id="IdToGet"/>
+        <p>Enter which tables to read from</p>
+        <label>Name/E-mail and Password</label>
+        <input type="checkbox" id="DisplayPassword"/><br/>
+        <label>Notes</label>
+        <input type="checkbox" id="DisplayNote"/>
     </form>
     <button id="GetEntries">get passwords</button>
 <h2 id="EntriesTitle">Entries</h2>
