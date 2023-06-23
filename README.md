@@ -12,16 +12,16 @@ In our second week we descussed how to deploy our project. We decided to use Doc
 [Mongodb docker image](https://hub.docker.com/_/mongo/)
 
 ``` bash
-application
-└── users
+application         # Data for login of our own program
+└── users           # The diffrent users
     ├── password
     └── username
-myDatabase
-├── notes
+myDatabase          # The logindata for extern webistes
+├── notes           # Extra Information
 │   ├── _id
 │   ├── note
-│   └── passwordid
-└── password
+│   └── passwordid  # The Password _id for the notes
+└── password        # The actual password which should be saved
     ├── _id
     ├── name
     └── password
@@ -34,3 +34,8 @@ myDatabase
 ![r](./assets/read.png)
 ![u](./assets/update.png)
 ![d](./assets/delete.png)
+
+# Reflection
+
+While creating this Project we got a better unterstanding about how Mongodb stores data. It was a fun experience to do something new not only the database but also the Go backend which was created with gin. Gin was new for us but made the api much simpler and efficent than with martini. To Mongodb part was pretty easy.
+We learned about golang project structure which is not as easy as it seems. An example would be the cmd folder which only exist in golang and replaces the the src or main file. All other files are stored in internal
